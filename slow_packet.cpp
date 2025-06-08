@@ -1,9 +1,9 @@
 #include "slow_packet.h"
 #include <arpa/inet.h> // htonl, htons, ...
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
-#include <iomanip>
 
 std::vector<uint8_t> serialize(const SlowPacket &p) {
     constexpr size_t HEADER_SIZE = offsetof(SlowPacket, data); // = 32 bytes
@@ -41,9 +41,11 @@ SlowPacket deserialize(const uint8_t *buf, size_t len) {
         throw std::runtime_error("Pacote muito pequeno");
     }
 
+    std::cout << "-------------- PACOTE RECEBIDO --------------" << std::endl;
+
     // SID
     memcpy(p.sid, buf + offsetof(SlowPacket, sid), 16);
-    std::cout << "sid: ";
+    std::cout << "| sid: ";
     std::cout << std::hex << std::setfill('0');
     for (int i = 0; i < 16; ++i) {
         if (i == 4 || i == 6 || i == 8 || i == 10)
@@ -58,24 +60,24 @@ SlowPacket deserialize(const uint8_t *buf, size_t len) {
     p.sttl_and_flags = saf_raw;
     uint32_t sttl = p.sttl_and_flags >> 5;
     uint8_t flags = p.sttl_and_flags & 0x1F;
-    std::cout << "sttl: " << sttl << ", flags: 0x" << std::hex << (int)flags << std::dec << std::endl;
+    std::cout << "| sttl: " << sttl << ", flags: 0x" << std::hex << (int)flags << std::dec << std::endl;
 
     // seqnum
     memcpy(&p.seqnum, buf + offsetof(SlowPacket, seqnum), 4);
-    std::cout << "seqnum: " << p.seqnum << std::endl;
+    std::cout << "| seqnum: " << p.seqnum << std::endl;
 
     // acknum
     memcpy(&p.acknum, buf + offsetof(SlowPacket, acknum), 4);
-    std::cout << "acknum: " << p.acknum << std::endl;
+    std::cout << "| acknum: " << p.acknum << std::endl;
 
     // window
     memcpy(&p.window, buf + offsetof(SlowPacket, window), 2);
-    std::cout << "window: " << p.window << std::endl;
+    std::cout << "| window: " << p.window << std::endl;
 
     // fid, fo
     p.fid = buf[offsetof(SlowPacket, fid)];
     p.fo = buf[offsetof(SlowPacket, fo)];
-    std::cout << "fid: " << (int)p.fid << ", fo: " << (int)p.fo << std::endl;
+    std::cout << "| fid: " << (int)p.fid << ", fo: " << (int)p.fo << std::endl;
 
     // payload
     p.data_len = len - offsetof(SlowPacket, data);
@@ -83,7 +85,10 @@ SlowPacket deserialize(const uint8_t *buf, size_t len) {
         throw std::runtime_error("Payload muito grande");
     }
     memcpy(p.data, buf + offsetof(SlowPacket, data), p.data_len);
-    std::cout << "data_len: " << p.data_len << " bytes" << std::endl;
+    std::cout << "| data_len: " << p.data_len << " bytes" << std::endl;
+    std::cout << "| " << p.data << std::endl;
+
+    std::cout << "---------------------------------------------" << std::endl;
 
     return p;
 }

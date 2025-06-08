@@ -21,7 +21,7 @@ public:
 
     // Fluxo principal
     bool connectSlow();
-    bool sendDataSlow(const uint8_t *buf, size_t len);
+    bool sendDataSlow(const uint8_t *buf, size_t len, bool revive = false);
     bool disconnectSlow();
 
 private:
@@ -36,7 +36,7 @@ private:
     uint16_t window_ = 0; // Window restante da central
 
     // Timeouts, reenvio
-    std::chrono::milliseconds timeout_{3000};
+    std::chrono::milliseconds timeout_{500};
     bool waitForPacket(SlowPacket &out);
 
     // Helpers

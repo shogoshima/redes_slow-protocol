@@ -5,29 +5,36 @@
 int main() {
     SlowPeripheral p("slow.gmelodie.com", 7033);
 
-    std::cout << "Conectando ao central…\n";
+    std::cout << "INICIANDO 3-WAY CONNECT…\n";
     if (!p.connectSlow()) {
-        std::cerr << "Falha ao conectar\n";
+        std::cerr << "FALHA AO CONECTAR\n";
         return 1;
     }
-    std::cout << "Conectado!\n";
 
-    const char *msg = "Hello Central!";
-    if (!p.sendDataSlow(reinterpret_cast<const uint8_t *>(msg), strlen(msg))) {
-        std::cerr << "Erro ao enviar dados\n";
+    const char *data = "";
+    if (!p.sendDataSlow(reinterpret_cast<const uint8_t *>(data), strlen(data))) {
+        std::cerr << "ERRO AO ENVIAR OS DADOS\n";
+        return 1;
+    } 
+    std::cout << "3-WAY CONNECT BEM SUCEDIDO!\n";
+
+    std::cout << "ENVIANDO DADOS…\n";
+    const char *msg = "dados";
+    if (!p.sendDataSlow(reinterpret_cast<const uint8_t *>(msg), strlen(msg), true)) {
+        std::cerr << "ERRO AO ENVIAR OS DADOS\n";
         return 1;
     } else {
-        std::cout << "Dados enviados com sucesso\n";
+        std::cout << "DADOS ENVIADOS COM SUCESSO\n";
     }
 
-    std::cout << "Desconectando…\n";
+    std::cout << "DESCONECTANDO…\n";
     if (!p.disconnectSlow()) {
-        std::cerr << "Erro ao desconectar da central\n";
+        std::cerr << "ERRO AO DESCONECTAR DA CENTRAL\n";
         return 1;
     } else {
-        std::cout << "Desconectado com sucesso\n";
+        std::cout << "DESCONECTADO COM SUCESSO\n";
     }
 
-    std::cout << "Finalizado\n";
+    std::cout << "FINALIZADO\n";
     return 0;
 }

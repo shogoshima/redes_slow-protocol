@@ -116,6 +116,7 @@ bool SlowPeripheral::connectSlow() {
 
     uint8_t flags = pkt.sttl_and_flags & 0x1F; // Extrai os 5 bits de flags
     if (flags & SLOW_FLAG_AR) {
+        std::cout << "ACCEPT recebido!" << std::endl;
         memcpy(sid_, pkt.sid, 16);
         sttl_ = pkt.sttl_and_flags >> 5;
         seqnum_ = pkt.seqnum;
@@ -128,10 +129,10 @@ bool SlowPeripheral::connectSlow() {
     return false;
 }
 
-bool SlowPeripheral::sendDataSlow(const uint8_t *buf, size_t len) {
+bool SlowPeripheral::sendDataSlow(const uint8_t *buf, size_t len, bool revive) {
     // Criando o pacote de dados
     SlowPacket pkt;
-    makeDataPacket(pkt, buf, len);
+    makeDataPacket(pkt, buf, len, revive);
 
     // Mandando o pacote, e esperando o Ack
     if (!sendPacket(pkt)) return false;
@@ -144,6 +145,7 @@ bool SlowPeripheral::sendDataSlow(const uint8_t *buf, size_t len) {
 
     uint8_t flags = pkt.sttl_and_flags & 0x1F; // Extrai os 5 bits de flags
     if (flags & SLOW_FLAG_ACK) {
+        std::cout << "ACK recebido!" << std::endl;
         sttl_ = pkt.sttl_and_flags >> 5;
         seqnum_ = pkt.seqnum;
         window_ = pkt.window;
@@ -171,6 +173,7 @@ bool SlowPeripheral::disconnectSlow() {
         sttl_ = pkt.sttl_and_flags >> 5;
         seqnum_ = pkt.seqnum;
         window_ = pkt.window;
+        state_ = SlowState::INACTIVE;
         return true;
     }
 
@@ -214,7 +217,6 @@ void SlowPeripheral::makeDataPacket(SlowPacket &p,
 
     // flags + sttl
     uint8_t flags = 0;
-    flags |= SLOW_FLAG_ACK;
     if (moreBits) flags |= SLOW_FLAG_MB;
     if (revive) flags |= SLOW_FLAG_REVIVE;
     p.sttl_and_flags = (sttl_ << 5) | (flags & 0x1F);
@@ -258,5 +260,3 @@ void SlowPeripheral::makeDisconnectPacket(SlowPacket &p) {
     // data: inexistente
     p.data_len = 0;
 }
-
-// ... implementar sendData(), disconnect(), timeouts etc.
