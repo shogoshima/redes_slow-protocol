@@ -39,6 +39,8 @@ SlowPeripheral::~SlowPeripheral() {
 
 bool SlowPeripheral::sendPacket(const SlowPacket &pkt) {
     auto buf = serialize(pkt);
+
+    // Verificar se a janela ainda possui espaço
     if (window_ < pkt.data_len) {
         std::cout << "Sem janela suficiente" << std::endl;
         return false;
@@ -53,21 +55,12 @@ bool SlowPeripheral::sendPacket(const SlowPacket &pkt) {
     return (sent == static_cast<ssize_t>(buf.size()));
 }
 
-bool SlowPeripheral::hasSid() const {
-    for (uint8_t b : sid_) {
-        if (b != 0) return true; // encontrou um byte não-zero → sid válido
-    }
-    return false; // todos os bytes são zero → sid ainda nil
-}
-
 bool SlowPeripheral::receivePacket(SlowPacket &pkt) {
     uint8_t buffer[1500];
     ssize_t n = recvfrom(sockfd_, buffer, sizeof(buffer), 0,
                          nullptr, nullptr);
     if (n <= 0) return false;
     std::cout << "Bytes recebidos: " << n << std::endl;
-
-    // verificar se sid é um uuid-v8 válido?
 
     // agora desserializa e sai do loop
     pkt = deserialize(buffer, n);
@@ -195,8 +188,8 @@ void SlowPeripheral::makeConnectPacket(SlowPacket &p) {
     p.seqnum = 0;
     p.acknum = 0;
 
-    // window: por exemplo, buffer livre de 10.000 bytes
-    p.window = 10000;
+    // window (exemplo de 1000)
+    p.window = 1000;
 
     // fid e fo: 0
     p.fid = 0;
@@ -250,7 +243,7 @@ void SlowPeripheral::makeDisconnectPacket(SlowPacket &p) {
     p.seqnum = seqnum_;
     p.acknum = seqnum_;
 
-    // window: por exemplo, buffer livre de 10.000 bytes
+    // window: 0
     p.window = 0;
 
     // fid e fo: 0

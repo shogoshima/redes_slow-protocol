@@ -13,9 +13,11 @@ std::vector<uint8_t> serialize(const SlowPacket &p) {
     // Começamos com o ponteiro de escrita
     uint8_t *dst = buf.data();
 
+    std::cout << "-------------- PACOTE ENVIADO ---------------" << std::endl;
+
     // Copiando os dados da struct e criando o pacote
     memcpy(dst + offsetof(SlowPacket, sid), p.sid, 16);
-    std::cout << "sid enviado: ";
+    std::cout << "| sid: ";
     std::cout << std::hex << std::setfill('0');
     for (int i = 0; i < 16; ++i) {
         if (i == 4 || i == 6 || i == 8 || i == 10)
@@ -23,14 +25,30 @@ std::vector<uint8_t> serialize(const SlowPacket &p) {
         std::cout << std::setw(2) << static_cast<int>(*(dst + i));
     }
     std::cout << std::dec << std::endl;
-
+    
     memcpy(dst + offsetof(SlowPacket, sttl_and_flags), &p.sttl_and_flags, 4);
+    uint32_t sttl = p.sttl_and_flags >> 5;
+    uint8_t flags = p.sttl_and_flags & 0x1F;
+    std::cout << "| sttl: " << sttl << ", flags: 0x" << std::hex << (int)flags << std::dec << std::endl;
+    
     memcpy(dst + offsetof(SlowPacket, seqnum), &p.seqnum, 4);
+    std::cout << "| seqnum: " << p.seqnum << std::endl;
+
     memcpy(dst + offsetof(SlowPacket, acknum), &p.acknum, 4);
+    std::cout << "| acknum: " << p.acknum << std::endl;
+
     memcpy(dst + offsetof(SlowPacket, window), &p.window, 2);
+    std::cout << "| window: " << p.window << std::endl;
+
     buf[offsetof(SlowPacket, fid)] = p.fid;
     buf[offsetof(SlowPacket, fo)] = p.fo;
+    std::cout << "| fid: " << (int)p.fid << ", fo: " << (int)p.fo << std::endl;
+
     memcpy(dst + HEADER_SIZE, p.data, p.data_len);
+    std::cout << "| data_len: " << p.data_len << " bytes" << std::endl;
+    std::cout << "| " << p.data << std::endl;
+
+    std::cout << "---------------------------------------------" << std::endl;
 
     return buf;
 }

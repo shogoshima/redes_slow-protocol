@@ -31,6 +31,10 @@ enum SlowFlags : uint8_t {
     SLOW_FLAG_MB      = 1 << 0    // More Bits
 };
 
-// Serialização / desserialização
+// Função para Serialização
+// Aceita um pacote SlowPacket, e retorna um vetor pronto para ser enviado
 std::vector<uint8_t> serialize(const SlowPacket& p);
+
+// Função para Desselialização
+// Aceita um vector (buffer) e tamanho do buffer, e converte para SlowPacket
 SlowPacket         deserialize(const uint8_t* buf, size_t len);
