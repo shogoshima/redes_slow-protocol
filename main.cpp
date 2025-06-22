@@ -35,7 +35,6 @@ int main() {
         cout << "ENVIANDO DADOS…\n";
         if (!p.sendDataSlow(reinterpret_cast<const uint8_t *>(msg.c_str()), msg.length(), zwc)) {
             cerr << "ERRO AO ENVIAR OS DADOS\n";
-            return 1;
         } else {
             cout << "DADOS ENVIADOS COM SUCESSO\n\n";
 

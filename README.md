@@ -44,7 +44,7 @@ g++ main.cpp slow_packet.cpp slow_peripheral.cpp -o main
     ACCEPT recebido!
     -------------- PACOTE ENVIADO ---------------
     | sid: 6a022f12-84af-8d5e-b071-8b9380697d5a
-    | sttl: 599, flags: 0x0
+    | sttl: 599, flags: 0x4
     | seqnum: 6936
     | acknum: 6936
     | window: 1024
@@ -81,7 +81,7 @@ g++ main.cpp slow_packet.cpp slow_peripheral.cpp -o main
     ENVIANDO DADOS…
     -------------- PACOTE ENVIADO ---------------
     | sid: c604609c-0050-8eb9-9f6d-52b4321cfcd8
-    | sttl: 599, flags: 0x0
+    | sttl: 599, flags: 0x4
     | seqnum: 5531
     | acknum: 5498
     | window: 1024
@@ -113,7 +113,7 @@ g++ main.cpp slow_packet.cpp slow_peripheral.cpp -o main
     ENVIANDO DADOS…
     -------------- PACOTE ENVIADO ---------------
     | sid: c604609c-0050-8eb9-9f6d-52b4321cfcd8
-    | sttl: 585, flags: 0x8
+    | sttl: 585, flags: 0xc
     | seqnum: 5589
     | acknum: 5531
     | window: 1024
@@ -135,6 +135,7 @@ g++ main.cpp slow_packet.cpp slow_peripheral.cpp -o main
     | 
     ---------------------------------------------
     ACK recebido!
+    ACCEPT recebido!
     DADOS ENVIADOS COM SUCESSO
 
     ESCREVA A PRÓXIMA MENSAGEM A SER ENVIADA (APERTE ENTER PARA ENVIAR)
@@ -143,6 +144,41 @@ g++ main.cpp slow_packet.cpp slow_peripheral.cpp -o main
     ```
 
 3. Quando o usuário digitar '0' no terminal, então será realizado uma desconexão.
+
+    O exemplo de funcionamento é mostrado abaixo:
+    ```
+    ESCREVA A MENSAGEM A SER ENVIADA (Aperte ENTER para enviar):
+    (Caso queira terminar, digite 0)
+    0
+
+    DESCONECTANDO…
+    -------------- PACOTE ENVIADO ---------------
+    | sid: 2bf2b218-ca6e-8576-8fe8-471fb833ac63
+    | sttl: 599, flags: 0x1c
+    | seqnum: 4671
+    | acknum: 4671
+    | window: 0
+    | fid: 0, fo: 0
+    | data_len: 0 bytes
+    | 
+    ---------------------------------------------
+    Enviando pacote (32 bytes) via UDP...
+    Bytes enviados: 32
+    Bytes recebidos: 32
+    -------------- PACOTE RECEBIDO --------------
+    | sid: 2bf2b218-ca6e-8576-8fe8-471fb833ac63
+    | sttl: 597, flags: 0x4
+    | seqnum: 0
+    | acknum: 0
+    | window: 1024
+    | fid: 0, fo: 0
+    | data_len: 0 bytes
+    | 
+    ---------------------------------------------
+    ACK recebido!
+    DESCONECTADO COM SUCESSO
+    FINALIZADO
+    ```
 
 #### Funcionamentos extras
 
