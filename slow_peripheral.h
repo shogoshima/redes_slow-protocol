@@ -38,7 +38,7 @@ private:
     uint8_t sid_[16];     // Session ID atual
     uint32_t sttl_ = 0;   // Vou precisar deslocar 5 bits na hora de utilizar
     uint32_t seqnum_ = 0; // Seqnum da sessão
-    uint16_t window_ = 0; // Window restante da central
+    int16_t window_ = 0;  // Window restante da central
 
     // Timeouts, reenvio
     std::chrono::milliseconds timeout_{500};

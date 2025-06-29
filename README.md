@@ -1,6 +1,14 @@
-### Trabalho de Implementação do Protocolo SLOW
+## Trabalho de Implementação do Protocolo SLOW
 
-#### Como rodar?
+Este é um projeto feito para a disciplina de Redes de Computadores para implementar o protocolo SLOW. Ele contém o lado do `Peripheral` (cliente), que tentará se conectar à `Central` (servidor).
+
+### Estrutura do código
+
+- `main.cpp`: Arquivo principal do projeto.
+- `slow_packet`: Arquivo que lida apenas com gerenciamento de pacotes (serialização e desserialização).
+- `slow_peripheral`: Arquivo com toda a lógica do SLOW-Protocol.
+
+### Como rodar?
 
 Para rodar, execute os seguintes comandos no terminal:
 
@@ -9,7 +17,47 @@ g++ main.cpp slow_packet.cpp slow_peripheral.cpp -o main
 ./main
 ```
 
-#### Funcionamento
+### Funcionalidades
+
+- `3-way connect` com recebimento de `accept/fail`.
+- Enviar dados (com `0-way connection` ou não) e receber `ack`.
+- Enviar `disconnect` e receber `ack`.
+
+#### Extras
+- Janela deslizante
+    Para a gerência da janela, foram implementados os seguintes passos:
+    1. Declaramos a variável privada `window_`, que guardará a janela que a central envia:
+        ```cpp
+        int16_t window_ = 0;
+        ```
+    2. Inicializamos o `window_` assim que recebemos o "ACCEPT" durante o `connectSlow()`.
+    3. Quando o `sendDataSlow()` é chamado, criamos o pacote a ser enviado e entramos em um `do while`:
+        ```cpp
+        // Enquanto não vier um ack, vai tentando
+        uint8_t flags = 0;
+        do {
+            // Checamos se cabe
+            if (len > window_) {
+                std::cout << "Sem janela suficiente" << std::endl;
+                return false;
+            }
+
+            if (!sendPacket(pkt)) return false;
+            if (!waitForPacket(pkt)) return false;
+
+            // Recebemos dados, captura os flags e atualiza janela anunciada
+            flags = pkt.sttl_and_flags & 0x1F;
+            window_ = pkt.window;
+        } while (!(flags & SLOW_FLAG_ACK));
+        ```
+        Nesse loop:
+        - Checamos se o tamanho do pacote está dentro da janela.
+        - Enviamos o pacote e esperamos resposta. Caso eles falhem, então é problema no servidor, que pode estar frequentemente fora do ar.
+        - Ao receber um pacote, captura os flags e atualiza janela.
+        - Repete, caso o ACK seja negativo.
+    4. Isso permite que o loop não seja infinito, caso a central retorne com uma janela real.
+
+### Funcionamento
 
 1. Ao rodar, será realizado inicialmente uma 3-way-connect, para iniciar uma conexão com o central.
 
@@ -179,7 +227,3 @@ g++ main.cpp slow_packet.cpp slow_peripheral.cpp -o main
     DESCONECTADO COM SUCESSO
     FINALIZADO
     ```
-
-#### Funcionamentos extras
-
-1. Janela Deslizante

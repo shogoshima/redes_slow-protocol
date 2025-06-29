@@ -14,7 +14,7 @@ SlowPeripheral::SlowPeripheral(const char *host, uint16_t port) {
         return;
     }
 
-    // Pegar o host pelo nome do host ("slow.gmelodie.com")
+    // Pegar o host pelo nome do host
     hostent *server = gethostbyname(host);
     if (server == nullptr) {
         std::cerr << "Erro ao resolver o host: " << host << std::endl;
@@ -39,13 +39,6 @@ SlowPeripheral::~SlowPeripheral() {
 
 bool SlowPeripheral::sendPacket(const SlowPacket &pkt) {
     auto buf = serialize(pkt);
-
-    // Verificar se a janela ainda possui espaço
-    if (window_ < pkt.data_len) {
-        std::cout << "Sem janela suficiente" << std::endl;
-        return false;
-    }
-    window_ -= pkt.data_len;
 
     std::cout << "Enviando pacote (" << buf.size() << " bytes) via UDP..." << std::endl;
     ssize_t sent = sendto(sockfd_, buf.data(), buf.size(), 0,
@@ -100,12 +93,7 @@ bool SlowPeripheral::connectSlow() {
 
     // Mandando o pacote, e esperando o Setup
     if (!sendPacket(pkt)) return false;
-    while (!waitForPacket(pkt)) {
-        std::cout << "Tentando novamente..." << window_ << std::endl;
-        if (!sendPacket(pkt)) {
-            return false;
-        }
-    }
+    if (!waitForPacket(pkt)) return false;
 
     uint8_t flags = pkt.sttl_and_flags & 0x1F; // Extrai os 5 bits de flags
     if (flags & SLOW_FLAG_AR) {
@@ -127,31 +115,36 @@ bool SlowPeripheral::sendDataSlow(const uint8_t *buf, size_t len, bool revive) {
     SlowPacket pkt;
     makeDataPacket(pkt, buf, len, revive);
 
-    // Mandando o pacote, e esperando o Ack
-    if (!sendPacket(pkt)) return false;
-    while (!waitForPacket(pkt)) {
-        std::cout << "Tentando novamente..." << window_ << std::endl;
-        if (!sendPacket(pkt)) {
+    // Enquanto não vier um ack, vai tentando
+    uint8_t flags = 0;
+    do {
+        // Checamos se cabe
+        if (len > window_) {
+            std::cout << "Sem janela suficiente" << std::endl;
             return false;
         }
-    }
 
-    uint8_t flags = pkt.sttl_and_flags & 0x1F; // Extrai os 5 bits de flags
-    if (flags & SLOW_FLAG_ACK) {
-        std::cout << "ACK recebido!" << std::endl;
-        if (revive) {
-            if (flags & SLOW_FLAG_AR)
-                std::cout << "ACCEPT recebido!" << std::endl;
-            else
-                return false;
-        }
-        sttl_ = pkt.sttl_and_flags >> 5;
-        seqnum_ = pkt.seqnum;
+        if (!sendPacket(pkt)) return false;
+        if (!waitForPacket(pkt)) return false;
+
+        // Recebemos dados, captura os flags e atualiza janela anunciada
+        flags = pkt.sttl_and_flags & 0x1F;
         window_ = pkt.window;
-        return true;
-    }
+    } while (!(flags & SLOW_FLAG_ACK));
 
-    return false;
+    // ACK chegou
+    std::cout << "ACK recebido!" << std::endl;
+    sttl_ = pkt.sttl_and_flags >> 5;
+    window_ -= len; // Decrementa do window atualizado
+    seqnum_ = pkt.seqnum;
+
+    if (revive) {
+        if (flags & SLOW_FLAG_AR)
+            std::cout << "ACCEPT recebido!" << std::endl;
+        else
+            return false;
+    }
+    return true;
 }
 
 bool SlowPeripheral::disconnectSlow() {
@@ -160,12 +153,7 @@ bool SlowPeripheral::disconnectSlow() {
 
     // Mandando o pacote, e esperando o Ack
     if (!sendPacket(pkt)) return false;
-    while (!waitForPacket(pkt)) {
-        std::cout << "Tentando novamente..." << window_ << std::endl;
-        if (!sendPacket(pkt)) {
-            return false;
-        }
-    }
+    if (!waitForPacket(pkt)) return false;
 
     uint8_t flags = pkt.sttl_and_flags & 0x1F; // Extrai os 5 bits de flags
     if (flags & SLOW_FLAG_ACK) {

@@ -9,7 +9,7 @@ int main() {
 
     cout << "INICIANDO 3-WAY CONNECT…\n";
     if (!p.connectSlow()) {
-        cerr << "FALHA AO CONECTAR\n";
+        cerr << "SERVIDOR FORA DO AR\n";
         return 1;
     }
 
