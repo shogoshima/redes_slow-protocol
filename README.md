@@ -2,6 +2,12 @@
 
 Este é um projeto feito para a disciplina de Redes de Computadores para implementar o protocolo SLOW. Ele contém o lado do `Peripheral` (cliente), que tentará se conectar à `Central` (servidor).
 
+### Integrantes
+
+- Augusto Cavalcante (14651531)
+- Gabriel Hyppolito (14571810)
+- Shogo Shima (12675145)
+
 ### Estrutura do código
 
 - `main.cpp`: Arquivo principal do projeto.
